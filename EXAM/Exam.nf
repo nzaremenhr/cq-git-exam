@@ -7,7 +7,7 @@ params.accession=null
 //M21012
 process downloadFASTA {
 storeDir params.storeDir
-publishDir params.in, mode: "copy", overwrite: true
+publishDir params.out, mode: "copy", overwrite: true
 input:
 val accession
 output:
@@ -17,7 +17,31 @@ wget "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M2
 """
 }
 
+process runcombinedFile {
+storeDir params.storeDir
 
+publishDir params.in, mode: "copy", overwrite: true
+input:
+path fastaFile
+output: 
+path "${combinedFile}.fasta"
+"""
+cat *.fasta > combinedFile.fasta 
+"""
+}
+
+
+//process runMAFFT {
+//publishDir params.out, mode: "copy", overwrite: true
+//container "https://depot.galaxyproject.org/singularity/mafft%3A7.525--h031d066_1"
+//input:
+//path fastaFile
+//output:
+//path "*"
+//"""
+//mafft --quiet *.unaligned.fasta > *.aligned.fasta
+//"""
+//}
 
 
 
@@ -28,5 +52,10 @@ System.exit(0)
 }
 accession_channel=Channel.from(params.accession)
 FASTA_channel=downloadFASTA(accession_channel)
+combineFile=runcombinedFile(FASTA_channel)
+concatChannel = FASTA_channel.concat(combineFile)
+mergedchannel=concatChannel.collect()
+ 
 
+//fastaFile_channel=Channel.fromPath(*.fasta)
 }
