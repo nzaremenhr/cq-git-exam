@@ -2,12 +2,15 @@ nextflow.enable.dsl=2
 params.storeDir="${launchDir}/cache"
 params.url= "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M21012&rettype=fasta&retmode=text"
 params.out="$launchDir/output"
-params.in = "$launchDir/out"
+params.seq = "$launchDir/out"
 params.accession=null
 //M21012
-process downloadFASTA {
+// hepatitis_combined.fasta
+//M21012.fasta 
+
+process downloadRef {
 storeDir params.storeDir
-publishDir params.out, mode: "copy", overwrite: true
+
 input:
 val accession
 output:
@@ -17,16 +20,15 @@ wget "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M2
 """
 }
 
-process runcombinedFile {
+process runcombine {
 storeDir params.storeDir
-
-publishDir params.in, mode: "copy", overwrite: true
 input:
-path fastaFile
-output: 
-path "${combinedFile}.fasta"
+path fastafiles   
+
+output:
+path "${params.accession_params.seq}_combine.fasta"  
 """
-cat *.fasta > combinedFile.fasta 
+cat *.fasta > ${params.accession_params.seq}_combine.fasta
 """
 }
 
@@ -51,11 +53,10 @@ print"(please provide an accession)"
 System.exit(0)
 }
 accession_channel=Channel.from(params.accession)
-FASTA_channel=downloadFASTA(accession_channel)
-combineFile=runcombinedFile(FASTA_channel)
-concatChannel = FASTA_channel.concat(combineFile)
-mergedchannel=concatChannel.collect()
+FASTA_channel=downloadRef(accession_channel)
+refChannel = channel.fromPath("${params.seq}/hepatitis_combined.fasta")
+concatChannel = FASTA_channel.concat(refChannel) 
+combinedChannel= runcombine(concatChannel)
  
 
-//fastaFile_channel=Channel.fromPath(*.fasta)
 }
