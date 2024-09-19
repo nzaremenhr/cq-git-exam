@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 params.storeDir="${launchDir}/cache"
 params.url= "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M21012&rettype=fasta&retmode=text"
 params.out="$launchDir/output"
-params.seq = "$launchDir/out"
+params.seq = "${launchDir}/out/"
 params.accession=null
 //M21012
 // hepatitis_combined.fasta
@@ -26,9 +26,9 @@ input:
 path fastafiles   
 
 output:
-path "${params.accession_params.seq}_combine.fasta"  
+path "${params.accession}_params.seq_combine.fasta"
 """
-cat *.fasta > ${params.accession_params.seq}_combine.fasta
+cat *.fasta > ${params.accession}_params.seq_combine.fasta
 """
 }
 
@@ -58,5 +58,4 @@ refChannel = channel.fromPath("${params.seq}/hepatitis_combined.fasta")
 concatChannel = FASTA_channel.concat(refChannel) 
 combinedChannel= runcombine(concatChannel)
  
-
 }
