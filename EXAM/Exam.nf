@@ -10,7 +10,6 @@ params.accession=null
 
 process downloadRef {
 storeDir params.storeDir
-
 input:
 val accession
 output:
@@ -33,17 +32,31 @@ cat *.fasta > ${params.accession}_params.seq_combine.fasta
 }
 
 
-//process runMAFFT {
+process runMAFFT {
+publishDir params.out, mode: "copy", overwrite: true
+container "https://depot.galaxyproject.org/singularity/mafft%3A7.525--h031d066_1"
+input:
+path fastaFile
+output:
+path "${params.accession}_aligned.fasta"
+"""
+mafft $fastaFile > ${params.accession}_aligned.fasta
+"""
+}
+
+//process runTrimal {
 //publishDir params.out, mode: "copy", overwrite: true
-//container "https://depot.galaxyproject.org/singularity/mafft%3A7.525--h031d066_1"
-//input:
-//path fastaFile
+//container "https://depot.galaxyproject.org/singularity/trimal%3A1.5.0--h4ac6f70_1"
+//path
 //output:
-//path "*"
+//path
 //"""
-//mafft --quiet *.unaligned.fasta > *.aligned.fasta
+
 //"""
 //}
+
+
+
 
 
 
@@ -57,5 +70,6 @@ FASTA_channel=downloadRef(accession_channel)
 refChannel = channel.fromPath("${params.seq}/hepatitis_combined.fasta")
 concatChannel = FASTA_channel.concat(refChannel) 
 combinedChannel= runcombine(concatChannel)
+MafftChannel=runMAFFT(combinedChannel)
  
 }
