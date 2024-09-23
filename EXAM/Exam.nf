@@ -23,7 +23,6 @@ process runcombine {
 storeDir params.storeDir
 input:
 path fastafiles   
-
 output:
 path "${params.accession}_params.seq_combine.fasta"
 """
@@ -44,16 +43,17 @@ mafft $fastaFile > ${params.accession}_aligned.fasta
 """
 }
 
-//process runTrimal {
-//publishDir params.out, mode: "copy", overwrite: true
-//container "https://depot.galaxyproject.org/singularity/trimal%3A1.5.0--h4ac6f70_1"
-//path
-//output:
-//path
-//"""
-
-//"""
-//}
+process runTrimal {
+publishDir params.out, mode: "copy", overwrite: true
+container "https://depot.galaxyproject.org/singularity/trimal%3A1.5.0--h4ac6f70_1"
+input:
+path alignedfile
+output: 
+path "${alignedfile}"
+"""
+trimal -in $alignedfile -out ${alignedfile}.trimal.fasta -htmlout ${alignedfile}_report.html -automated1
+"""
+}
 
 
 
@@ -71,5 +71,6 @@ refChannel = channel.fromPath("${params.seq}/hepatitis_combined.fasta")
 concatChannel = FASTA_channel.concat(refChannel) 
 combinedChannel= runcombine(concatChannel)
 MafftChannel=runMAFFT(combinedChannel)
- 
-}
+trimalChannel= runTrimal(MafftChannel)
+
+ }
