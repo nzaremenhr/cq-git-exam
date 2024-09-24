@@ -15,7 +15,7 @@ val accession
 output:
 path "${accession}.fasta"       
 """
-wget "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M21012&rettype=fasta&retmode=text" -O M21012.fasta
+wget "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=M21012&rettype=fasta&retmode=text" -O {params.accession}
 """
 }
 
@@ -43,6 +43,7 @@ mafft $fastaFile > ${params.accession}_aligned.fasta
 """
 }
 
+
 process runTrimal {
 publishDir params.out, mode: "copy", overwrite: true
 container "https://depot.galaxyproject.org/singularity/trimal%3A1.5.0--h4ac6f70_1"
@@ -54,10 +55,6 @@ path "${alignedfile}"
 trimal -in $alignedfile -out ${alignedfile}.trimal.fasta -htmlout ${alignedfile}_report.html -automated1
 """
 }
-
-
-
-
 
 
 workflow {
@@ -72,5 +69,4 @@ concatChannel = FASTA_channel.concat(refChannel)
 combinedChannel= runcombine(concatChannel)
 MafftChannel=runMAFFT(combinedChannel)
 trimalChannel= runTrimal(MafftChannel)
-
- }
+}
