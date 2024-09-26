@@ -1,8 +1,5 @@
 *Zone.Identifier
-*password*
-
 *.pdf
-*.html
 **/.nextflow*
 **/*.fasta 
 **.nextflow.log*
